@@ -440,6 +440,11 @@ button.alt,.vbar .back{color:var(--hl);border-color:var(--hl)}
 .ats .at-kv>*{border-bottom:1px dotted #000}
 .ats .at-f{display:flex;justify-content:space-between;align-items:flex-end;margin-top:6px;font-size:11.5px}
 .ats .at-f>span{border-top:1px solid #000;min-width:110px;text-align:center;padding-top:1px;margin-top:8mm}
+.sc .sp{display:block;width:14mm;height:17.5mm;object-fit:cover;border:1px solid #000;margin:2px 0;filter:grayscale(1)}
+.sc .sp0{display:flex;align-items:center;justify-content:center;font-size:8px;color:#777;filter:none}
+.sc{min-height:34mm}
+.att.big td{height:11mm}
+.att.big td.sgc{width:48mm}
 </style>
 </head>
 <body>
@@ -844,7 +849,7 @@ start();
    <h2>হাজিরা শীট</h2>
    <div class="grid">
     <label>ধরন
-     <select id="at_mode"><option value="ind">প্রত্যেক শিক্ষার্থীর আলাদা শীট</option><option value="cls">শ্রেণি অনুযায়ী হাজিরা তালিকা (সই করার জন্য)</option></select>
+     <select id="at_mode"><option value="ind">প্রত্যেক শিক্ষার্থীর আলাদা শীট</option><option value="cls">শ্রেণি অনুযায়ী হাজিরা তালিকা (সই করার জন্য)</option><option value="sgn">শিক্ষার্থী নিজে নাম লিখে সই করবে (নামের ঘর ফাঁকা)</option><option value="sgp">নাম ছাপা, শিক্ষার্থী শুধু সই করবে</option></select>
     </label>
     <label>কোন শ্রেণির শীট
      <select id="at_cls"><option value="">সব শ্রেণি</option><option>One</option><option>Two</option><option>Three</option><option>Four</option><option>Five</option></select>
@@ -1207,6 +1212,7 @@ function buildPlan(){
  $('sst').textContent=rows.length+' জনের জন্য '+bn(R)+'টি রুম লেগেছে (প্রতি রুমে সর্বোচ্চ '+bn(cap)+' জন)।';
  $('seatout').scrollIntoView({behavior:'smooth',block:'start'});
 }
+function spImg(ix){var p=photos[(ix||'').toUpperCase()];return p?'<img class="sp" src="'+p+'" alt="">':'<div class="sp sp0">ছবি</div>'}
 function renderPlan(){
  if(!PLAN||!PLAN.rooms){$('seatout').innerHTML='';return}
  var info={};getRows().forEach(function(r){if(r[7])info[r[7].toUpperCase()]=r});
@@ -1222,8 +1228,8 @@ function renderPlan(){
     if(!ix){sh.push('<div class="sc em"><i>'+bn(k+1)+'</i><small>ফাঁকা</small></div>');continue}
     var r=info[ix.toUpperCase()];tot++;
     if(r){cnt[r[1]]=(cnt[r[1]]||0)+1;
-     sh.push('<div class="sc"><i>'+bn(k+1)+'</i><em>'+esc(ix)+'</em><span>'+esc(tc(r[0]||''))+'</span><small>'+esc(CL[r[1]]||r[1])+' · রোল '+esc(r[3]||'')+'</small></div>');
-    }else sh.push('<div class="sc"><i>'+bn(k+1)+'</i><em>'+esc(ix)+'</em></div>');
+     sh.push('<div class="sc"><i>'+bn(k+1)+'</i>'+spImg(ix)+'<em>'+esc(ix)+'</em><span>'+esc(tc(r[0]||''))+'</span><small>'+esc(CL[r[1]]||r[1])+' · রোল '+esc(r[3]||'')+'</small></div>');
+    }else sh.push('<div class="sc"><i>'+bn(k+1)+'</i>'+spImg(ix)+'<em>'+esc(ix)+'</em></div>');
    }
    bh.push('<div class="bn"><div class="bl">বেঞ্চ '+bn(b+1)+'</div><div class="bs" style="grid-template-columns:repeat('+rm.per+',1fr)">'+sh.join('')+'</div></div>');
   }
@@ -1450,7 +1456,7 @@ PREADY.then(function(db){
   q.onsuccess=function(){
    var c=q.result;
    if(c){if(c.value)photos[c.key]=c.value;else delete photos[c.key];n++;c.continue()}
-   else if(n)gen();
+   else if(n){gen();try{renderPlan()}catch(e){}}
   };
  }catch(e){}
 });
@@ -2265,12 +2271,24 @@ function classSheet(k,list,N,dts){
  '<table class="att"><thead><tr><th style="width:10mm">ক্রম</th><th style="width:28mm">ইনডেক্স</th><th>নাম</th><th style="width:12mm">রোল</th>'+th+'</tr></thead><tbody>'+body+'</tbody></table>'+
  '<div class="rf"><div>মোট শিক্ষার্থী: <b>'+bn(list.length)+'</b></div><div class="sgn">শ্রেণি শিক্ষকের সই</div>'+sigBlock('প্রধান শিক্ষক')+'</div></section>';
 }
+function signSheet(k,list,blank){
+ var body='';
+ list.forEach(function(r,j){
+  body+='<tr><td>'+bn(j+1)+'</td><td class="nm">'+(blank?'':esc(tc(r[0]||'')))+'</td><td>'+esc(blank?(r[3]||''):r[7])+'</td><td class="sgc"></td></tr>';
+ });
+ return '<section class="rm">'+rowHead('হাজিরা শীট — '+esc(CL[k]||k)+' শ্রেণি')+
+ '<div style="margin:0 0 6px;font-size:12px">তারিখ: ......................... &nbsp; বিষয়: .........................</div>'+
+ '<table class="att big"><thead><tr><th style="width:10mm">ক্রম</th><th>'+(blank?'শিক্ষার্থীর নাম (নিজে লিখবে)':'শিক্ষার্থীর নাম')+'</th><th style="width:'+(blank?'14mm':'30mm')+'">'+(blank?'রোল':'ইনডেক্স')+'</th><th>শিক্ষার্থীর সই</th></tr></thead><tbody>'+body+'</tbody></table>'+
+ '<div class="rf"><div>মোট শিক্ষার্থী: <b>'+bn(list.length)+'</b> &nbsp; উপস্থিত: ........ &nbsp; অনুপস্থিত: ........</div><div class="sgn">পরিদর্শকের সই</div>'+sigBlock('প্রধান শিক্ষক')+'</div></section>';
+}
 function build(one){
  var cn=cancelled(),f=$('at_cls').value,mode=$('at_mode').value;
  var all=rows().filter(function(r){var k=r[7].toUpperCase();if(cn[k])return false;return one?k===one:(!f||r[1]===f)});
  if(!all.length){$('attout').innerHTML='';$('at_st').textContent='কোনো শিক্ষার্থী পাওয়া যায়নি।';return 0}
  var N=nDays(),dts=dateList(),ph=window.__ESS?window.__ESS.photos():{},h=[];
- if(mode==='cls'&&!one){
+ if((mode==='sgn'||mode==='sgp')&&!one){
+  Object.keys(NO).forEach(function(k){var g=all.filter(function(r){return r[1]===k});if(g.length)h.push(signSheet(k,g,mode==='sgn'))});
+ }else if(mode==='cls'&&!one){
   Object.keys(NO).forEach(function(k){var g=all.filter(function(r){return r[1]===k});if(g.length)h.push(classSheet(k,g,N,dts))});
  }else all.forEach(function(r){h.push(childSheet(r,N,dts,ph))});
  $('attout').innerHTML=h.join('');
