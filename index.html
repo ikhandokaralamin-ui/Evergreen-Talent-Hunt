@@ -471,6 +471,205 @@ try{
 }catch(e){}
 })();
 </script>
+<script>
+/* Supabase sync: login + auto save/load on every device */
+(function(){
+var URL_='https://aavttyqrxnoqvnfnppvq.supabase.co',KEY='sb_publishable_88vCf3o8NRX8CCSgMZ_Oxg_0Nvc3cDZ';
+var LS;try{LS=window.localStorage}catch(e){return}
+var SK='sb_sess',MK='sb_meta',DK='sb_dirty',SKIP={'ess_ui_theme':1};
+var origSet=Storage.prototype.setItem,origRem=Storage.prototype.removeItem;
+var ready=false,applying=false,flushing=false,ftm=null,rt=null;
+function jget(k,d){try{var v=LS.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function jset(k,v){try{origSet.call(LS,k,JSON.stringify(v))}catch(e){}}
+var sess=jget(SK,null),meta=jget(MK,{}),dirty=jget(DK,{});
+function $(i){return document.getElementById(i)}
+function syncable(k){k=String(k);return k.indexOf('ess_')===0&&!SKIP[k]}
+
+/* ---------- UI ---------- */
+var st=document.createElement('style');
+st.textContent='#sbov{position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:#0f172a;padding:16px;font-family:inherit}#sbov .c{background:#fff;color:#111;border-radius:16px;padding:24px;width:100%;max-width:360px;box-shadow:0 10px 40px rgba(0,0,0,.4);text-align:center}#sbov h2{margin:0 0 4px;font-size:20px}#sbov p{margin:0 0 14px;color:#555;font-size:14px}#sbov input{width:100%;box-sizing:border-box;padding:12px;margin:0 0 10px;border:1px solid #bbb;border-radius:10px;font-size:16px;background:#fff;color:#111}#sbov button{width:100%;padding:12px;border:0;border-radius:10px;background:#0b7a4b;color:#fff;font-size:16px;cursor:pointer}#sbov button:disabled{opacity:.6}#sbov .e{color:#c00;font-size:14px;min-height:18px;margin-bottom:8px}#sbb{position:fixed;left:10px;bottom:10px;z-index:9998;background:rgba(17,24,39,.9);color:#fff;font-size:12px;padding:6px 12px;border-radius:99px;display:none}#sbb a{color:#9cf;margin-left:10px;cursor:pointer;text-decoration:underline}@media print{#sbov,#sbb{display:none!important}}';
+document.head.appendChild(st);
+var ov=document.createElement('div');ov.id='sbov';document.body.appendChild(ov);
+var bd=document.createElement('div');bd.id='sbb';
+bd.innerHTML='<span id="sbs"></span><a id="sbr">রিফ্রেশ</a><a id="sbo">লগআউট</a>';
+document.body.appendChild(bd);
+function showLoad(m){ov.style.display='flex';ov.innerHTML='<div class="c"><h2>অপেক্ষা করুন…</h2><p id="sbl"></p></div>';$('sbl').textContent=m}
+function setBadge(s){var t=$('sbs');if(!t)return;t.textContent=s==='ok'?'☁ সিঙ্ক হয়েছে':s==='busy'?'☁ সেভ হচ্ছে…':'⚠ অফলাইন, পরে সেভ হবে'}
+function showLogin(err){
+ ov.style.display='flex';bd.style.display='none';
+ ov.innerHTML='<div class="c"><h2>লগইন করুন</h2><p>প্রবেশপত্র ও ফলাফল পোর্টাল</p><div class="e" id="sbe"></div><input id="sbm" type="email" placeholder="ইমেইল" autocomplete="username"><input id="sbp" type="password" placeholder="পাসওয়ার্ড" autocomplete="current-password"><button id="sbg" type="button">ঢুকুন</button></div>';
+ $('sbe').textContent=err||'';
+ function go(){
+  var em=$('sbm').value.trim(),pw=$('sbp').value;
+  if(!em||!pw){$('sbe').textContent='ইমেইল ও পাসওয়ার্ড দিন';return}
+  $('sbg').disabled=true;$('sbe').textContent='';
+  authReq('password',{email:em,password:pw}).then(function(r){
+   return r.json().then(function(j){
+    if(!r.ok){$('sbe').textContent='ইমেইল বা পাসওয়ার্ড ভুল';$('sbg').disabled=false;return}
+    saveSess(j);start();
+   });
+  }).catch(function(){$('sbe').textContent='ইন্টারনেট সংযোগ নেই';$('sbg').disabled=false});
+ }
+ $('sbg').onclick=go;
+ $('sbp').onkeydown=function(e){if(e.key==='Enter')go()};
+}
+
+/* ---------- Auth ---------- */
+function authReq(grant,body){return fetch(URL_+'/auth/v1/token?grant_type='+grant,{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify(body)})}
+function saveSess(j){sess={a:j.access_token,r:j.refresh_token,e:j.expires_at?j.expires_at*1000:Date.now()+(j.expires_in||3600)*1000};jset(SK,sess)}
+function token(){
+ if(!sess)return Promise.reject(new Error('nologin'));
+ if(sess.e-Date.now()>60000)return Promise.resolve(sess.a);
+ return authReq('refresh_token',{refresh_token:sess.r}).then(function(r){
+  if(r.status>=400&&r.status<500){sess=null;try{origRem.call(LS,SK)}catch(e){}throw new Error('nologin')}
+  if(!r.ok)throw new Error('net');
+  return r.json();
+ }).then(function(j){saveSess(j);return sess.a});
+}
+function api(path,opt){
+ opt=opt||{};
+ return token().then(function(t){
+  var h={apikey:KEY,Authorization:'Bearer '+t};
+  if(opt.body)h['Content-Type']='application/json';
+  if(opt.prefer)h.Prefer=opt.prefer;
+  return fetch(URL_+path,{method:opt.method||'GET',headers:h,body:opt.body}).then(function(r){
+   if(r.status===401){if(sess)sess.e=0;throw new Error('auth')}
+   if(!r.ok)return r.text().then(function(x){throw new Error('http '+r.status+' '+x)});
+   return r.status===204?null:r.text().then(function(x){return x?JSON.parse(x):null});
+  });
+ });
+}
+
+/* ---------- IndexedDB (chobi) ---------- */
+function idb(){return new Promise(function(ok){try{var q=indexedDB.open('ess_photos_v1',1);q.onupgradeneeded=function(){q.result.createObjectStore('p')};q.onsuccess=function(){ok(q.result)};q.onerror=function(){ok(null)}}catch(e){ok(null)}})}
+function idbAll(){return idb().then(function(db){return new Promise(function(ok){var o={};if(!db)return ok(o);try{var c=db.transaction('p').objectStore('p').openCursor();c.onsuccess=function(){var r=c.result;if(r){if(r.value)o[String(r.key)]=r.value;r.continue()}else{db.close();ok(o)}};c.onerror=function(){ok(o)}}catch(e){ok(o)}})})}
+function idbGet(k){return idb().then(function(db){return new Promise(function(ok){if(!db)return ok(null);try{var q=db.transaction('p').objectStore('p').get(k);q.onsuccess=function(){db.close();ok(q.result||null)};q.onerror=function(){ok(null)}}catch(e){ok(null)}})})}
+function idbWrite(k,v){return idb().then(function(db){return new Promise(function(ok){if(!db)return ok();try{var tx=db.transaction('p','readwrite'),s=tx.objectStore('p');if(v)s.put(v,k);else s['delete'](k);tx.oncomplete=tx.onerror=tx.onabort=function(){db.close();ok()}}catch(e){ok()}})})}
+
+/* ---------- Change tracking ---------- */
+function mark(k){
+ meta[k]=Date.now();dirty[k]=1;jset(MK,meta);jset(DK,dirty);
+ clearTimeout(ftm);ftm=setTimeout(flush,1500);
+}
+Storage.prototype.setItem=function(k,v){var r=origSet.apply(this,arguments);if(this===LS&&ready&&!applying&&syncable(k))mark(String(k));return r};
+Storage.prototype.removeItem=function(k){var r=origRem.apply(this,arguments);if(this===LS&&ready&&!applying&&syncable(k))mark(String(k));return r};
+if(window.IDBObjectStore){
+ var _put=IDBObjectStore.prototype.put,_del=IDBObjectStore.prototype['delete'];
+ var isP=function(s){try{return s.name==='p'&&s.transaction.db.name==='ess_photos_v1'}catch(e){return false}};
+ IDBObjectStore.prototype.put=function(v,k){var r=_put.apply(this,arguments);if(ready&&!applying&&k!=null&&isP(this))mark('ph:'+k);return r};
+ IDBObjectStore.prototype['delete']=function(k){var r=_del.apply(this,arguments);if(ready&&!applying&&k!=null&&typeof k!=='object'&&isP(this))mark('ph:'+k);return r};
+}
+
+/* ---------- Push ---------- */
+function rowFor(k){
+ var t=meta[k]||(meta[k]=Date.now());
+ if(k.indexOf('ph:')===0)return idbGet(k.slice(3)).then(function(v){return {key:k,value:{v:v||null,t:t}}});
+ var v=null;try{v=LS.getItem(k)}catch(e){}
+ return Promise.resolve({key:k,value:{v:v,t:t}});
+}
+function flushRaw(){
+ if(flushing||!sess)return Promise.resolve();
+ var keys=Object.keys(dirty);
+ if(!keys.length){setBadge('ok');return Promise.resolve()}
+ flushing=true;setBadge('busy');
+ var batch=keys.slice(0,10),rows;
+ return Promise.all(batch.map(rowFor)).then(function(r){
+  rows=r;
+  return api('/rest/v1/kv?on_conflict=key',{method:'POST',prefer:'resolution=merge-duplicates,return=minimal',body:JSON.stringify(rows)});
+ }).then(function(){
+  batch.forEach(function(k,i){if(meta[k]===rows[i].value.t)delete dirty[k]});
+  jset(DK,dirty);jset(MK,meta);flushing=false;
+  if(Object.keys(dirty).length)return flushRaw();
+  setBadge('ok');
+ },function(e){flushing=false;throw e});
+}
+function fail(e){
+ if(e&&e.message==='nologin'){showLogin('আবার লগইন করুন');return}
+ setBadge('off');clearTimeout(rt);rt=setTimeout(flush,30000);
+}
+function flush(){return flushRaw().catch(fail)}
+
+/* ---------- Pull ---------- */
+function pageMeta(off,acc){
+ return api('/rest/v1/kv?select='+encodeURIComponent('key,t:value->>t')+'&order=key&limit=1000&offset='+off).then(function(rows){
+  rows=rows||[];rows.forEach(function(r){acc[r.key]=+r.t||0});
+  return rows.length===1000?pageMeta(off+1000,acc):acc;
+ });
+}
+function pullKeys(keys){
+ var changed=false,chain=Promise.resolve();
+ for(var i=0;i<keys.length;i+=12){(function(b){
+  chain=chain.then(function(){
+   var list=b.map(function(k){return '"'+k+'"'}).join(',');
+   return api('/rest/v1/kv?select=key,value&key=in.('+encodeURIComponent(list)+')');
+  }).then(function(rows){
+   var ps=[];
+   (rows||[]).forEach(function(r){
+    var v=r.value?r.value.v:null,k=r.key;
+    if(k.indexOf('ph:')===0)ps.push(idbWrite(k.slice(3),v));
+    else if(v==null)origRem.call(LS,k);
+    else origSet.call(LS,k,v);
+    meta[k]=(r.value&&+r.value.t)||meta[k]||0;changed=true;
+   });
+   return Promise.all(ps);
+  });
+ })(keys.slice(i,i+12))}
+ return chain.then(function(){return changed});
+}
+function sync(){
+ var remote;
+ return pageMeta(0,{}).then(function(r){
+  remote=r;
+  return idbAll();
+ }).then(function(ph){
+  var local={},push=[],pull=[],i;
+  for(i=0;i<LS.length;i++){var k=LS.key(i);if(syncable(k))local[k]=1}
+  Object.keys(ph).forEach(function(k){local['ph:'+k]=1});
+  Object.keys(remote).forEach(function(k){
+   var lt=meta[k]||0;
+   if(remote[k]>lt)pull.push(k);else if(lt>remote[k])push.push(k);
+  });
+  Object.keys(local).forEach(function(k){if(!(k in remote)){if(!meta[k])meta[k]=Date.now();push.push(k)}});
+  push.forEach(function(k){dirty[k]=1});
+  jset(MK,meta);jset(DK,dirty);
+  return flushRaw().then(function(){
+   if(!pull.length)return false;
+   applying=true;
+   return pullKeys(pull).then(function(c){applying=false;jset(MK,meta);return c},function(e){applying=false;throw e});
+  });
+ });
+}
+
+/* ---------- Start ---------- */
+function finish(offline){
+ ready=true;ov.style.display='none';bd.style.display='block';
+ setBadge(offline?'off':'ok');
+ if(offline){clearTimeout(rt);rt=setTimeout(flush,30000)}
+}
+function start(){
+ if(!sess){showLogin();return}
+ showLoad('ডেটা মেলানো হচ্ছে…');
+ sync().then(function(changed){
+  var n=+(sessionStorage.getItem('sb_rl')||0);
+  if(changed&&n<3){sessionStorage.setItem('sb_rl',String(n+1));location.reload();return}
+  sessionStorage.removeItem('sb_rl');finish(false);
+ }).catch(function(e){
+  if(e&&e.message==='nologin'){showLogin();return}
+  finish(true);
+ });
+}
+$('sbr').onclick=function(){location.reload()};
+$('sbo').onclick=function(){
+ if(Object.keys(dirty).length&&!confirm('সব পরিবর্তন এখনও সেভ হয়নি। তবুও লগআউট করবেন?'))return;
+ flush().then(function(){sess=null;try{origRem.call(LS,SK)}catch(e){}location.reload()});
+};
+window.addEventListener('online',function(){flush()});
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'&&ready)flush()});
+window.addEventListener('pagehide',function(){if(ready)flush()});
+setInterval(function(){if(ready&&Object.keys(dirty).length)flush()},20000);
+start();
+})();
+</script>
 <header class="nav ui"><div class="nav-in"><a class="brand" href="#home"><i>ই</i><span>প্রবেশপত্র ও ফলাফল পোর্টাল<small>Admit Card · Seat Plan · Result</small></span></a><nav class="links" id="links"></nav><button type="button" class="tgl" id="tgl" aria-label="থিম বদলান">🌓 থিম</button></div></header>
 <div class="wrap">
  <div class="ui">
