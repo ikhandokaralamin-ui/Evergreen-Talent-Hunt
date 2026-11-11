@@ -415,6 +415,31 @@ button.alt,.vbar .back{color:var(--hl);border-color:var(--hl)}
 .xcpg:last-child{break-after:auto;page-break-after:auto}
 @page xcert{size:A4 landscape;margin:0}
 @media print{#certout{display:none!important}body.pcert #certout{display:block!important}body.pcert #sheet{display:none!important}}
+/* ===== হাজিরা শীট ===== */
+.sgb{text-align:center;min-width:120px;color:#000}
+.sgb .sgbox{height:14mm;display:flex;align-items:flex-end;justify-content:center;border:0;background:none;overflow:hidden}
+.sgb .sgbox img{max-width:100%;max-height:100%;object-fit:contain;mix-blend-mode:multiply}
+.sgb span{display:block;border-top:1px solid #000;padding-top:1px;font-size:11.5px}
+#attout{display:none}
+@media screen{body[data-v="att"] #attout{display:block;max-width:194mm;margin:0 auto}}
+@media print{#attout{display:none!important}body.pat #attout{display:block!important}body.pat #sheet{display:none!important}}
+.att{width:100%;border-collapse:collapse;font-size:12px;color:#000}
+.att th,.att td{border:1px solid #000;padding:2px 4px;text-align:center;height:8mm}
+.att td.nm{text-align:left}
+.att th{font-weight:800}
+.att tr{break-inside:avoid}
+.ats{background:#fff;color:#000;border:1.4px solid #000;border-radius:3px;padding:8px 10px;margin-bottom:5mm;break-inside:avoid;font-family:"Hind Siliguri","Noto Sans Bengali",system-ui,sans-serif}
+.ats .at-h{text-align:center;border-bottom:2px solid #000;padding-bottom:3px;margin-bottom:6px}
+.ats .at-h b{display:block;font:800 15px/1.3 "Noto Serif Bengali",serif}
+.ats .at-h span{font-size:10.5px}
+.ats .at-t{display:table;margin:3px auto 0;border:1.4px solid #000;border-radius:99px;padding:0 18px;font:800 13px/1.6 "Noto Serif Bengali",serif}
+.ats .at-w{display:flex;gap:10px;margin-bottom:6px;align-items:flex-start}
+.ats .at-ph{width:18mm;height:22.5mm;border:1px solid #000;flex:none;display:flex;align-items:center;justify-content:center;font-size:9px}
+.ats .at-ph img{width:100%;height:100%;object-fit:cover;filter:grayscale(1)}
+.ats .at-kv{flex:1;display:grid;grid-template-columns:82px 1fr;font-size:12px;line-height:1.45}
+.ats .at-kv>*{border-bottom:1px dotted #000}
+.ats .at-f{display:flex;justify-content:space-between;align-items:flex-end;margin-top:6px;font-size:11.5px}
+.ats .at-f>span{border-top:1px solid #000;min-width:110px;text-align:center;padding-top:1px;margin-top:8mm}
 </style>
 </head>
 <body>
@@ -815,6 +840,47 @@ start();
    <p class="hint">যে কারও সারিতে চাপলে ছবি, পিতা-মাতা, সিট ও ফলাফলসহ পুরো তথ্য খুলবে। ফাইলে নামালে বা কপি করলে এখন যে তালিকা দেখাচ্ছে (খোঁজা ও ফিল্টারসহ) সেটাই আসবে।</p>
   </div>
 
+  <div class="panel" data-view="att">
+   <h2>হাজিরা শীট</h2>
+   <div class="grid">
+    <label>ধরন
+     <select id="at_mode"><option value="ind">প্রত্যেক শিক্ষার্থীর আলাদা শীট</option><option value="cls">শ্রেণি অনুযায়ী হাজিরা তালিকা (সই করার জন্য)</option></select>
+    </label>
+    <label>কোন শ্রেণির শীট
+     <select id="at_cls"><option value="">সব শ্রেণি</option><option>One</option><option>Two</option><option>Three</option><option>Four</option><option>Five</option></select>
+    </label>
+    <label>কতটি দিনের ঘর<input id="at_days" type="number" min="1" max="20" value="5"></label>
+    <label>তারিখ (কমা দিয়ে, ঐচ্ছিক)<input id="at_dates" placeholder="যেমন: ২০/১১, ২১/১১, ২২/১১"></label>
+   </div>
+   <div class="row">
+    <button type="button" id="at_go">হাজিরা শীট তৈরি করো</button>
+    <button type="button" id="at_pr" class="alt">প্রিন্ট / PDF</button>
+    <span id="at_st"></span>
+   </div>
+   <p class="hint">তারিখ ফাঁকা রাখলে ঘরগুলো হাতে লেখার জন্য ফাঁকা থাকবে। শীট তৈরির পর এই পাতার নিচে দেখা যাবে। নিচের তালিকায় কোনো শিক্ষার্থীর পাশে "শীট" চাপলে শুধু তার একার শীট প্রিন্টের জন্য খুলবে।</p>
+   <details class="bulk" style="margin-top:16px">
+    <summary>নতুন শিক্ষার্থী যোগ করুন</summary>
+    <div class="grid" style="margin-top:10px">
+     <label>নাম<input id="aa_n"></label>
+     <label>শ্রেণি<select id="aa_c"><option>One</option><option>Two</option><option>Three</option><option>Four</option><option>Five</option></select></label>
+     <label>রোল<input id="aa_r" inputmode="numeric"></label>
+     <label>বিদ্যালয় (ফাঁকা রাখলে আমাদের স্কুল)<input id="aa_s"></label>
+     <label>পিতা<input id="aa_f"></label>
+     <label>মাতা<input id="aa_m"></label>
+     <label>জন্ম তারিখ (দিন/মাস/সাল)<input id="aa_d" placeholder="25/05/2018"></label>
+     <label>ছবি (ঐচ্ছিক)<input id="aa_p" type="file" accept="image/*"></label>
+    </div>
+    <div class="row"><button type="button" id="aa_go">যোগ করো</button><span id="aa_st"></span></div>
+   </details>
+   <div class="grid" style="margin:16px 0 8px">
+    <label>খুঁজুন (নাম / ইনডেক্স / রোল)<input id="at_q" placeholder="যেমন: ETHSE26201 বা নাম" autocomplete="off"></label>
+    <label>শ্রেণি<select id="at_cf"><option value="">সব শ্রেণি</option><option>One</option><option>Two</option><option>Three</option><option>Four</option><option>Five</option></select></label>
+   </div>
+   <p class="hint" id="at_ls" style="margin:0 0 6px"></p>
+   <div class="pl2" id="at_l" style="margin-top:0"></div>
+   <p class="hint">"মুছে ফেলুন" চাপলে ওই শিক্ষার্থী তালিকা থেকে পুরোপুরি চলে যাবে, সঙ্গে তার ছবি, মার্ক, সিট ও গোপন কোডও যাবে, আর ফেরানো যাবে না। তার ইনডেক্স নম্বর অন্য কাউকে দেওয়া হবে না। সাময়িকভাবে বাদ রাখতে চাইলে "শিক্ষার্থীর তালিকা" পাতার "বাতিল করুন" ব্যবহার করুন।</p>
+  </div>
+
   <div class="panel" data-view="cert">
    <h2>সার্টিফিকেট (অংশগ্রহণ সনদ)</h2>
    <p class="hint" style="margin-top:0">শিক্ষার্থীর তালিকা থেকে নিজে থেকেই নাম, শ্রেণি, রোল ও ইনডেক্স আসবে। বাতিল শিক্ষার্থীরা বাদ থাকবে। নাম বাছাই করে একসাথে প্রিন্ট বা PDF করুন।</p>
@@ -841,6 +907,7 @@ start();
  <div id="resout"></div>
  <div id="sheet"></div>
 <div id="certout"></div>
+<div id="attout"></div>
 </div>
 <script>
 (function(){
@@ -1547,6 +1614,29 @@ $('ifcp').addEventListener('click',function(){
 $('pflt').addEventListener('change',renderPh);
 $('pmiss').addEventListener('change',renderPh);
 
+window.__ESS={
+ photos:function(){return photos},
+ add:async function(a,f){
+  var v=a.map(function(x){return String(x||'').replace(/[|\n\r]/g,' ').trim()});
+  var line=[v[0],v[1]||'One',v[2]||'@E',v[3],v[4],v[5],v[6],''].join('|');
+  $('data').value=$('data').value.replace(/\s+$/,'')+'\n'+line;
+  gen();
+  var rs=getRows(),idx=rs[rs.length-1][7];
+  if(f){var d=await shrink(f);if(d){setPhoto(idx,d);gen()}}
+  renderEntry();return idx;
+ },
+ del:function(ix){
+  var k=String(ix||'').toUpperCase();if(!k)return false;
+  $('data').value=getRows().filter(function(r){return (r[7]||'').toUpperCase()!==k}).map(function(r){return r.join('|')}).join('\n');
+  try{localStorage.setItem('ess_list_v2',$('data').value)}catch(e){}
+  delete CAN[k];saveCan();
+  delete MARKS[k];saveMarks();
+  if(photos[k]){delete photos[k];pput(k,'')}
+  if(PLAN&&PLAN.rooms){PLAN.rooms.forEach(function(rm){rm.seats=rm.seats.map(function(s){return (s||'').toUpperCase()===k?'':s})});try{localStorage.setItem('ess_seat_v1',JSON.stringify(PLAN))}catch(e){}}
+  try{var cd=JSON.parse(localStorage.getItem('ess_codes_v1')||'{}');if(cd[k]){delete cd[k];localStorage.setItem('ess_codes_v1',JSON.stringify(cd))}}catch(e){}
+  refreshAll();return true;
+ }
+};
 gen();renderEntry();
 })();
 </script>
@@ -1755,8 +1845,8 @@ function show(r){
 var $=function(i){return document.getElementById(i)};
 var bn=function(n){return String(n).replace(/\d/g,function(d){return '০১২৩৪৫৬৭৮৯'.charAt(d)})};
 var IC={admit:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M14 10h4M14 14h4M6 16h6"/>',photos:'<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m4 18 5-5 4 4 3-3 4 4"/>',seat:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',result:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',code:'<rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',backup:'<path d="M12 3v12m0 0-4-4m4 4 4-4M4 20h16"/>'};
-IC.cert='<circle cx="12" cy="9" r="6"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/>';IC.online='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>';IC.info='<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>';
-var V=[['admit','প্রবেশপত্র','তথ্য দিয়ে প্রতিটি শিক্ষার্থীর প্রবেশপত্র তৈরি ও প্রিন্ট করুন।'],['photos','শিক্ষার্থীর ছবি','ছবি যোগ করুন এবং নতুন শিক্ষার্থী নথিভুক্ত করুন।'],['seat','সিট প্ল্যান','রুম ও বেঞ্চ অনুযায়ী স্বয়ংক্রিয় আসন বিন্যাস।'],['result','ফলাফল ও মার্কশিট','মার্ক এন্ট্রি, গ্রেড, মেধাস্থান ও মার্কশিট।'],['cert','সার্টিফিকেট','নাম বাছাই করে অংশগ্রহণ সার্টিফিকেট একসাথে প্রিন্ট বা PDF করুন।'],['online','অনলাইন ফলাফল','ইনডেক্স দিয়ে শিক্ষার্থী নিজের ফলাফল দেখার পেজ বানান।'],['info','শিক্ষার্থীর তথ্য','নাম, পিতা-মাতা, ছবি, সিট ও ফলাফল খুঁজুন; ফাইলে নামান।'],['list','শিক্ষার্থীর তালিকা','পুরো তালিকা দেখুন ও সম্পাদনা করুন।'],['code','গোপন কোড','খাতায় নাম-রোলের বদলে গোপন কোড বসান, কোড দিয়ে মার্ক দিন।'],['backup','ব্যাকআপ','ডেটা ফাইলে সেভ করুন বা ফিরিয়ে আনুন।']];
+IC.att='<rect x="4" y="3" width="16" height="18" rx="2"/><path d="m8 9 2 2 3-3M8 16h8"/>';IC.cert='<circle cx="12" cy="9" r="6"/><path d="M8.5 14 7 22l5-3 5 3-1.5-8"/>';IC.online='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>';IC.info='<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/>';
+var V=[['admit','প্রবেশপত্র','তথ্য দিয়ে প্রতিটি শিক্ষার্থীর প্রবেশপত্র তৈরি ও প্রিন্ট করুন।'],['photos','শিক্ষার্থীর ছবি','ছবি যোগ করুন এবং নতুন শিক্ষার্থী নথিভুক্ত করুন।'],['seat','সিট প্ল্যান','রুম ও বেঞ্চ অনুযায়ী স্বয়ংক্রিয় আসন বিন্যাস।'],['att','হাজিরা শীট','প্রত্যেক শিক্ষার্থীর হাজিরা শীট বানান; নতুন শিক্ষার্থী যোগ বা মুছে ফেলুন।'],['result','ফলাফল ও মার্কশিট','মার্ক এন্ট্রি, গ্রেড, মেধাস্থান ও মার্কশিট।'],['cert','সার্টিফিকেট','নাম বাছাই করে অংশগ্রহণ সার্টিফিকেট একসাথে প্রিন্ট বা PDF করুন।'],['online','অনলাইন ফলাফল','ইনডেক্স দিয়ে শিক্ষার্থী নিজের ফলাফল দেখার পেজ বানান।'],['info','শিক্ষার্থীর তথ্য','নাম, পিতা-মাতা, ছবি, সিট ও ফলাফল খুঁজুন; ফাইলে নামান।'],['list','শিক্ষার্থীর তালিকা','পুরো তালিকা দেখুন ও সম্পাদনা করুন।'],['code','গোপন কোড','খাতায় নাম-রোলের বদলে গোপন কোড বসান, কোড দিয়ে মার্ক দিন।'],['backup','ব্যাকআপ','ডেটা ফাইলে সেভ করুন বা ফিরিয়ে আনুন।']];
 var T={home:'হোম'};V.forEach(function(v){T[v[0]]=v[1]});
 var ui=document.querySelector('.wrap>.ui'),panels=ui.querySelectorAll(':scope>.panel');
 ['admit','photos','seat','result','list','info'].forEach(function(k,i){if(panels[i])panels[i].setAttribute('data-view',k)});
@@ -2122,6 +2212,110 @@ window.addEventListener('resize',fit);
 function onRoute(){if((location.hash||'')==='#cert')setTimeout(refresh,0)}
 window.addEventListener('hashchange',onRoute);
 onRoute();
+})();
+</script>
+<script>
+(function(){
+var $=function(i){return document.getElementById(i)};
+var DG='০১২৩৪৫৬৭৮৯',NO={One:1,Two:2,Three:3,Four:4,Five:5},CL={One:'প্রথম',Two:'দ্বিতীয়',Three:'তৃতীয়',Four:'চতুর্থ',Five:'পঞ্চম'},E='Shafipur Evergreen Smart School';
+function bn(n){return String(n).replace(/\d/g,function(d){return DG.charAt(d)})}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function jget(k,d){try{return JSON.parse(localStorage.getItem(k)||'null')||d}catch(e){return d}}
+function tc(s){
+ return String(s).replace(/[.:](?=\S)/g,'. ').replace(/\.\s*$/,'').replace(/\s+/g,' ').trim().split(' ').map(function(w){
+  if(/[^\x00-\x7F]/.test(w)||/\d/.test(w))return w;
+  var p=w.replace(/[^A-Za-z]/g,'');
+  if(p.length<=2&&p===p.toUpperCase()&&!/^md$/i.test(p))return w;
+  return w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();
+ }).join(' ');
+}
+function rows(){
+ return ($('data').value||'').split('\n').map(function(l){return l.trim()}).filter(Boolean).map(function(l){
+  var p=l.split('|').map(function(x){return x.trim()});while(p.length<8)p.push('');return p;
+ }).filter(function(r){return r[7]}).sort(function(a,b){
+  return (NO[a[1]]||9)-(NO[b[1]]||9)||(parseInt(a[3],10)||0)-(parseInt(b[3],10)||0)||a[7].localeCompare(b[7]);
+ });
+}
+function cancelled(){return jget('ess_cancel_v1',{})}
+function schoolOf(r){return (!r[2]||r[2]==='@E')?E:r[2]}
+function metaTxt(){return [$('exam').value,$('dt').value?'তারিখ: '+$('dt').value:'','কেন্দ্র: '+$('ven').value].filter(Boolean).map(esc).join(' | ')}
+function dateList(){return ($('at_dates').value||'').split(',').map(function(x){return x.trim()}).filter(Boolean)}
+function nDays(){var d=dateList();return d.length||Math.min(20,Math.max(1,parseInt($('at_days').value,10)||5))}
+function rowHead(t){
+ var lg='';try{lg=localStorage.getItem('ess_logo_v1')||''}catch(e){}
+ return '<div class="rh">'+(lg?'<img class="logo" src="'+lg+'" alt="">':'')+'<div class="s1">'+esc($('sch').value)+'</div><div class="s2">'+t+'</div><div class="s3">'+metaTxt()+'</div></div>';
+}
+function sigBlock(label){var g='';try{g=localStorage.getItem('ess_sig_v2')||''}catch(e){}return '<div class="sgb"><div class="sgbox">'+(g?'<img src="'+g+'" alt="">':'')+'</div><span>'+label+'</span></div>'}
+function childSheet(r,N,dts,ph){
+ var p=ph[r[7].toUpperCase()],tr='',i;
+ for(i=0;i<N;i++)tr+='<tr><td>'+bn(i+1)+'</td><td>'+(dts[i]?esc(dts[i]):'')+'</td><td></td><td></td></tr>';
+ return '<div class="ats"><div class="at-h"><b>'+esc($('sch').value)+'</b><span>'+metaTxt()+'</span><div class="at-t">হাজিরা শীট</div></div>'+
+ '<div class="at-w"><div class="at-ph">'+(p?'<img src="'+p+'" alt="">':'ছবি')+'</div><div class="at-kv">'+
+ '<b>ইনডেক্স নং</b><span>'+esc(r[7])+'</span><b>নাম</b><span>'+esc(tc(r[0]||''))+'</span><b>শ্রেণি / রোল</b><span>'+esc(CL[r[1]]||r[1])+' / '+esc(r[3]||'')+'</span><b>বিদ্যালয়</b><span>'+esc(schoolOf(r))+'</span></div></div>'+
+ '<table class="att"><thead><tr><th style="width:12mm">ক্রম</th><th>তারিখ</th><th style="width:36mm">উপস্থিত / অনুপস্থিত</th><th style="width:40mm">পরিদর্শকের সই</th></tr></thead><tbody>'+tr+'</tbody></table>'+
+ '<div class="at-f"><div>মোট উপস্থিত: ........ দিন &nbsp; অনুপস্থিত: ........ দিন</div>'+sigBlock('প্রধান শিক্ষক')+'</div></div>';
+}
+function classSheet(k,list,N,dts){
+ var th='',i,body='';
+ for(i=0;i<N;i++)th+='<th>'+(dts[i]?esc(dts[i]):bn(i+1))+'</th>';
+ list.forEach(function(r,j){
+  body+='<tr><td>'+bn(j+1)+'</td><td>'+esc(r[7])+'</td><td class="nm">'+esc(tc(r[0]||''))+'</td><td>'+esc(r[3]||'')+'</td>'+new Array(N+1).join('<td></td>')+'</tr>';
+ });
+ return '<section class="rm">'+rowHead('হাজিরা শীট — '+esc(CL[k]||k)+' শ্রেণি')+
+ '<table class="att"><thead><tr><th style="width:10mm">ক্রম</th><th style="width:28mm">ইনডেক্স</th><th>নাম</th><th style="width:12mm">রোল</th>'+th+'</tr></thead><tbody>'+body+'</tbody></table>'+
+ '<div class="rf"><div>মোট শিক্ষার্থী: <b>'+bn(list.length)+'</b></div><div class="sgn">শ্রেণি শিক্ষকের সই</div>'+sigBlock('প্রধান শিক্ষক')+'</div></section>';
+}
+function build(one){
+ var cn=cancelled(),f=$('at_cls').value,mode=$('at_mode').value;
+ var all=rows().filter(function(r){var k=r[7].toUpperCase();if(cn[k])return false;return one?k===one:(!f||r[1]===f)});
+ if(!all.length){$('attout').innerHTML='';$('at_st').textContent='কোনো শিক্ষার্থী পাওয়া যায়নি।';return 0}
+ var N=nDays(),dts=dateList(),ph=window.__ESS?window.__ESS.photos():{},h=[];
+ if(mode==='cls'&&!one){
+  Object.keys(NO).forEach(function(k){var g=all.filter(function(r){return r[1]===k});if(g.length)h.push(classSheet(k,g,N,dts))});
+ }else all.forEach(function(r){h.push(childSheet(r,N,dts,ph))});
+ $('attout').innerHTML=h.join('');
+ $('at_st').textContent=bn(all.length)+' জনের হাজিরা শীট তৈরি হয়েছে।';
+ return all.length;
+}
+function doPrint(){document.body.classList.add('pat');window.print()}
+window.addEventListener('afterprint',function(){document.body.classList.remove('pat')});
+$('at_go').addEventListener('click',function(){if(build('')){$('attout').scrollIntoView({behavior:'smooth',block:'start'})}});
+$('at_pr').addEventListener('click',function(){if(build(''))doPrint()});
+function renderAT(){
+ var box=$('at_l');if(!box)return;
+ var q=($('at_q').value||'').trim().toLowerCase(),f=$('at_cf').value,cn=cancelled(),all=rows();
+ var list=all.filter(function(r){return (!f||r[1]===f)&&(!q||(r[0]+' '+r[7]+' '+r[3]).toLowerCase().indexOf(q)>-1)});
+ var st=box.scrollTop;
+ box.innerHTML='<table><thead><tr><th>ইনডেক্স</th><th>নাম</th><th>শ্রেণি / রোল</th><th></th></tr></thead><tbody>'+list.map(function(r){
+  var k=r[7].toUpperCase(),c=cn[k],qk=esc(k);
+  return '<tr class="'+(c?'cx':'')+'"><td>'+esc(r[7])+'</td><td class="nmc">'+esc(tc(r[0]||''))+(c?' <span class="bdg no">বাতিল</span>':'')+'</td><td>'+esc(CL[r[1]]||r[1])+' / '+esc(r[3]||'')+'</td>'+
+  '<td>'+(c?'':'<button type="button" class="alt" data-sh="'+qk+'">শীট</button> ')+'<button type="button" class="dg" data-dl="'+qk+'">মুছে ফেলুন</button></td></tr>';
+ }).join('')+'</tbody></table>';
+ box.scrollTop=st;
+ $('at_ls').textContent='মোট '+bn(all.length)+' জন'+(list.length!==all.length?' (এখানে দেখানো হচ্ছে '+bn(list.length)+' জন)':'');
+}
+$('at_l').addEventListener('click',function(e){
+ var b=e.target.closest('button');if(!b)return;
+ if(b.dataset.sh){if(build(b.dataset.sh))doPrint()}
+ else if(b.dataset.dl){
+  var k=b.dataset.dl,r=rows().filter(function(x){return x[7].toUpperCase()===k})[0];
+  if(!confirm('"'+(r?tc(r[0]||''):k)+'" ('+k+') কে তালিকা থেকে পুরোপুরি মুছে ফেলবেন?\n\nতার ছবি, মার্ক, সিট ও গোপন কোডও মুছে যাবে, আর ফেরানো যাবে না। এই ইনডেক্স নম্বর অন্য কাউকে দেওয়া হবে না।'))return;
+  if(window.__ESS&&window.__ESS.del(k)){$('attout').innerHTML='';$('at_st').textContent='মুছে ফেলা হয়েছে।';renderAT()}
+ }
+});
+['at_q'].forEach(function(i){$(i).addEventListener('input',renderAT)});
+$('at_cf').addEventListener('change',renderAT);
+$('aa_go').addEventListener('click',async function(){
+ var g=function(i){return $(i).value.replace(/[|\n\r]/g,' ').trim()},nm=g('aa_n'),b=this;
+ if(!nm){$('aa_st').textContent='নাম লিখুন।';return}
+ if(!window.__ESS){$('aa_st').textContent='যোগ করা যায়নি, পাতা রিফ্রেশ করুন।';return}
+ b.disabled=true;$('aa_st').textContent='যোগ হচ্ছে...';
+ var ix=await window.__ESS.add([nm,g('aa_c'),g('aa_s')||'@E',g('aa_r'),g('aa_f'),g('aa_m'),g('aa_d')],$('aa_p').files[0]);
+ ['aa_n','aa_r','aa_s','aa_f','aa_m','aa_d','aa_p'].forEach(function(i){$(i).value=''});
+ $('aa_st').textContent='যোগ হয়েছে। ইনডেক্স: '+ix;b.disabled=false;renderAT();
+});
+window.addEventListener('hashchange',function(){if((location.hash||'')==='#att')renderAT()});
+renderAT();
 })();
 </script>
 </body>
